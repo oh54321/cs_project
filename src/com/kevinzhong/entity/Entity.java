@@ -20,7 +20,6 @@ public abstract class Entity {
     private boolean falling, canJump;
 
     private Rectangle entity;
-    private BufferedImage sprite;
 
     public Entity(double w, double h) {
 
@@ -32,10 +31,6 @@ public abstract class Entity {
         falling = true;
         canJump = false;
 
-    }
-
-    public void setSprite(BufferedImage sprite) {
-        this.sprite = sprite;
     }
 
     public void move() {
@@ -188,20 +183,12 @@ public abstract class Entity {
 
     }
 
-    public void render(Graphics2D g) {
-        g.setColor(Color.WHITE);
-        if (sprite != null)
-            g.drawImage(sprite, (int) entity.getX(), (int) entity.getY(), (int) entity.getWidth(),
-                    (int) entity.getHeight(), null);
-        else
-            g.fill(getBounds());
-
-    }
-
     protected static double findDistance(Entity a, Entity b) {
         return Math.sqrt(Math.pow((a.getBounds().getMinX() + a.getBounds().getWidth() / 2) - (b.getBounds().getMinX() + b.getBounds().getWidth() / 2), 2) +
                 Math.pow((a.getBounds().getMinY() + a.getBounds().getHeight() / 2) - (b.getBounds().getMinY() + b.getBounds().getHeight() / 2), 2));
     }
+
+    public abstract void render(Graphics2D g);
 
     public abstract void update();
 

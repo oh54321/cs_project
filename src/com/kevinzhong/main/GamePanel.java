@@ -4,6 +4,7 @@ import java.awt.*;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
@@ -62,7 +63,7 @@ public class GamePanel extends Canvas implements Runnable {
         // Transparent 16 x 16 pixel cursor image.
         BufferedImage cursorImg = null;
         try {
-            cursorImg = ImageIO.read(new File("resources/sprites/cursor.png"));
+            cursorImg = ImageIO.read(new FileInputStream("resources/sprites/cursor.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -92,7 +93,7 @@ public class GamePanel extends Canvas implements Runnable {
 
         g2d.translate(-cam.getX(), -cam.getY());
 
-        g2d.setColor(Color.BLACK);
+        g2d.setColor(Color.DARK_GRAY);
         g2d.fillRect((int) cam.getX(), (int) cam.getY(), getWidth(), getHeight());
 
         if (State.getState() != null)

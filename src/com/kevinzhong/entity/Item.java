@@ -4,6 +4,8 @@ import com.kevinzhong.gfx.ImageLoader;
 import com.kevinzhong.gfx.SpriteSheet;
 import com.kevinzhong.tile.Tile;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.util.LinkedList;
 
 public class Item extends Entity {
@@ -14,6 +16,8 @@ public class Item extends Entity {
     private int amount = 1;
     private int type;
     private static int ItemSize = 12;
+
+    private BufferedImage sprite;
 
     public Item(int t, boolean d) {
         super(16, 16);
@@ -68,7 +72,8 @@ public class Item extends Entity {
                 index = findCloseAndSimilar(items, i);
                 if (index == -1)
                     continue;
-                items.get(i).setLocation((items.get(i).getBounds().getX() + items.get(index).getBounds().getX()) / 2, (items.get(i).getBounds().getY() + items.get(index).getBounds().getY()) / 2);
+                items.get(i).setLocation((items.get(i).getBounds().getX() + items.get(index).getBounds().getX()) / 2,
+                        (items.get(i).getBounds().getY() + items.get(index).getBounds().getY()) / 2);
                 items.get(i).setAmount(items.get(i).getAmount() + items.get(index).getAmount());
                 items.get(i).jump();
                 items.get(i).setxVel(Math.random() * 20 - 10);
@@ -88,14 +93,27 @@ public class Item extends Entity {
         return -1;
     }
 
+    public void setSprite(BufferedImage sprite) {
+        this.sprite = sprite;
+    }
 
     private void getSprite() {
         if (type == 0)
-            super.setSprite(itemSheet.crop(0, 0, 8, 8));
+            this.setSprite(itemSheet.crop(0, 0, 8, 8));
         else if (type == 1)
-            super.setSprite(itemSheet.crop(8, 0, 8, 8));
+            this.setSprite(itemSheet.crop(8, 0, 8, 8));
         else if (type == 2)
-            super.setSprite(itemSheet.crop(16, 0, 8, 8));
+            this.setSprite(itemSheet.crop(16, 0, 8, 8));
+
+    }
+
+    public void render(Graphics2D g) {
+        g.setColor(Color.WHITE);
+        if (sprite != null)
+            g.drawImage(sprite, (int) super.getBounds().getX(), (int) super.getBounds().getY(),
+                    (int) super.getBounds().getWidth(), (int) super.getBounds().getHeight(), null);
+        else
+            g.fill(getBounds());
 
     }
 

@@ -1,19 +1,21 @@
 package com.kevinzhong.entity;
 
+import com.kevinzhong.gfx.Animation;
 import com.kevinzhong.gfx.ImageLoader;
+import com.kevinzhong.gfx.SpriteSheet;
 
 public class Player extends Mob {
 
 	private int currentBlock = 0;
 	private boolean placingBlocks = false;
 	private boolean breakingBlocks = false;
-	private static String playerSpriteLoc = "resources/sprites/player.png";
+	private static String playerSpriteLoc = "resources/spritesheets/mobsprites.png";
 	private int totalIDs = 4;
 
 	public Player() {
 
-		super(28, 44); // fix this
-		super.setSprite(ImageLoader.loadImage(playerSpriteLoc));
+		super(32, 48); // fix this
+		super.setWalkAnimation(new Animation(new SpriteSheet(ImageLoader.loadImage(playerSpriteLoc)), 0, 0, 16, 24, 11  ));
 	}
 
 	public void init() {
