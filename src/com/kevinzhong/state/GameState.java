@@ -135,6 +135,9 @@ public class GameState extends State {
                     i.getBounds().getMinY() > cam.getY() && i.getBounds().getMaxY() < cam.getY() + height)
                 i.render(g);
         }
+        g.drawImage(new ImageIcon("resources/sprites/healthbar"+player.getHealth()+".png").getImage(),
+                                (int)cam.getX()+30, (int) cam.getY()+height-150, 150,150, null);
+        
         //drawCollisionBounds(g);
 
         g.setColor(Color.GREEN);
