@@ -12,7 +12,7 @@ public abstract class Entity {
 
     protected final double GRAVITY = .5;
     protected final double MAX_VERTICAL_VELOCITY = 50;
-    protected final double MAX_HORIZONTAL_VELOCITY = 20;
+    protected final double MAX_HORIZONTAL_VELOCITY = 30;
     protected final float DECELERATION_RATE = 0.34f;
     private int SIDE_COLLISION_WIDTH, SIDE_COLLISION_HEIGHT;
 
