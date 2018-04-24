@@ -1,9 +1,9 @@
 package com.kevinzhong.state;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.image.AffineTransformOp;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -15,6 +15,9 @@ import javax.swing.ImageIcon;
 
 import com.kevinzhong.entity.Item;
 import com.kevinzhong.entity.Player;
+import com.kevinzhong.gfx.ImageLoader;
+import com.kevinzhong.gfx.ParallaxEngine;
+import com.kevinzhong.gfx.ParallaxLayer;
 import com.kevinzhong.handlers.Camera;
 import com.kevinzhong.main.GamePanel;
 import com.kevinzhong.tile.Tile;
@@ -30,6 +33,8 @@ public class GameState extends State {
     private ArrayList<Point> points;
     private LinkedList<Item> items;
     private int maxItems = 401;
+
+    private ParallaxEngine parallaxEngine;
 
     public GameState(int w, int h, Player p, Camera c, String save) {
         width = w;
@@ -81,32 +86,47 @@ public class GameState extends State {
         player.setX(maxTilesX * Tile.getTileSize() / 2);
         player.setY(195 * Tile.getTileSize());
         items = new LinkedList<>();
+
+        /*********************
+         * TEMPORARY CODE!!! *
+         *********************/
+        BufferedImage bg1 = ImageLoader.loadImage("resources/mountains.png");
+        BufferedImage after = new BufferedImage(bg1.getWidth() * 2, bg1.getHeight() * 2, BufferedImage.TYPE_INT_ARGB);
+        AffineTransform at = new AffineTransform();
+        at.scale(2.0, 2.0);
+        AffineTransformOp scaleOp =
+                new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+        after = scaleOp.filter(bg1, after);
+
+        parallaxEngine = new ParallaxEngine(new ParallaxLayer(after, 2, 3));
     }
 
     public void render(Graphics2D g) {
-            for (int y = (int) (cam.getY() / Tile.getTileSize()) - 1; y < (int) (cam.getY() + height)
-                    / Tile.getTileSize() + 1; y++)
-                for (int x = (int) (cam.getX() / Tile.getTileSize()) - 1; x < (int) (cam.getX() + width)
-                        / Tile.getTileSize() + 1; x++)
-                    if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0)) {
-                        if (tile[y][x].getActive() != 0)
-                            if (tile[y][x].getType() == 0)
-                                g.drawImage(new ImageIcon("resources/textures/dirt.png").getImage(),
-                                        x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
-                                        Tile.getTileSize(), null);
-                            else if (tile[y][x].getType() == 1)
-                                g.drawImage(new ImageIcon("resources/textures/stone.png").getImage(),
-                                        x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
-                                        Tile.getTileSize(), null);
-                            else if (tile[y][x].getType() == 2)
-                                g.drawImage(new ImageIcon("resources/textures/grass.png").getImage(),
-                                        x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
-                                        Tile.getTileSize(), null);
-                            else if (tile[y][x].getType() == 3)
-                                g.drawImage(new ImageIcon("resources/textures/plants.png").getImage(),
-                                        x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
-                                        Tile.getTileSize(), null);
-                    }
+        parallaxEngine.render(g, cam);
+
+        for (int y = (int) (cam.getY() / Tile.getTileSize()) - 1; y < (int) (cam.getY() + height)
+                / Tile.getTileSize() + 1; y++)
+            for (int x = (int) (cam.getX() / Tile.getTileSize()) - 1; x < (int) (cam.getX() + width)
+                    / Tile.getTileSize() + 1; x++)
+                if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0)) {
+                    if (tile[y][x].getActive() != 0)
+                        if (tile[y][x].getType() == 0)
+                            g.drawImage(new ImageIcon("resources/textures/dirt.png").getImage(),
+                                    x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
+                                    Tile.getTileSize(), null);
+                        else if (tile[y][x].getType() == 1)
+                            g.drawImage(new ImageIcon("resources/textures/stone.png").getImage(),
+                                    x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
+                                    Tile.getTileSize(), null);
+                        else if (tile[y][x].getType() == 2)
+                            g.drawImage(new ImageIcon("resources/textures/grass.png").getImage(),
+                                    x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
+                                    Tile.getTileSize(), null);
+                        else if (tile[y][x].getType() == 3)
+                            g.drawImage(new ImageIcon("resources/textures/plants.png").getImage(),
+                                    x * Tile.getTileSize(), y * Tile.getTileSize(), Tile.getTileSize(),
+                                    Tile.getTileSize(), null);
+                }
 
         player.render(g);
 
@@ -121,8 +141,8 @@ public class GameState extends State {
 
         g.drawString("HOLDING: " + player.getCurrentBlock(), 10 + cam.getX(), 20 + cam.getY());
 
-            for (Point p : points)
-                g.draw(new Rectangle(p));
+        for (Point p : points)
+            g.draw(new Rectangle(p));
     }
 
     public void update() {
@@ -133,25 +153,41 @@ public class GameState extends State {
         if (player.getBreakingBlocks())
             breakBlock(GamePanel.getMainJFrame().getContentPane().getMousePosition());
 
-            for (int y = (int) player.getY() - 1; y < (int) player.getY() + 5; y++)
-                for (int x = (int) player.getX() - 1; x < (int) player.getX() + 3; x++)
-                    if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0))
-                        if (tile[y][x].getActive() == 1)
-                            player.checkBlockCollision(x, y);
+        for (int y = (int) player.getY() - 1; y < (int) player.getY() + 5; y++)
+            for (int x = (int) player.getX() - 1; x < (int) player.getX() + 3; x++)
+                if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0))
+                    if (tile[y][x].getActive() == 1)
+                        player.checkBlockCollision(x, y);
 
-            for (Item i : items) {
-                if (i.getBounds().getMinX() > cam.getX() && i.getBounds().getMaxX() < cam.getX() + width &&
-                        i.getBounds().getMinY() > cam.getY() && i.getBounds().getMaxY() < cam.getY() + height) {
-                    i.update();
-                    for (int y = (int) i.getY() - 1; y < (int) i.getY() + 3; y++)
-                        for (int x = (int) i.getX() - 1; x < (int) i.getX() + 1; x++)
-                            if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0))
-                                if (tile[y][x].getActive() == 1)
-                                    i.checkBlockCollision(x, y);
-                }
+        for (Item i : items) {
+            if (i.getBounds().getMinX() > cam.getX() && i.getBounds().getMaxX() < cam.getX() + width &&
+                    i.getBounds().getMinY() > cam.getY() && i.getBounds().getMaxY() < cam.getY() + height) {
+                i.update();
+                for (int y = (int) i.getY() - 1; y < (int) i.getY() + 3; y++)
+                    for (int x = (int) i.getX() - 1; x < (int) i.getX() + 1; x++)
+                        if (y < tile.length && x < tile[0].length && !(y < 0 || x < 0))
+                            if (tile[y][x].getActive() == 1)
+                                i.checkBlockCollision(x, y);
+            }
         }
         Item.StackStackableItems(items);
         // System.out.println(player.getX() + " " + player.getY());
+
+        if (player.getxVel() < -1)
+            parallaxEngine.setLeft();
+        if (player.getxVel() > 1)
+            parallaxEngine.setRight();
+        if(player.getyVel() < -1)
+            parallaxEngine.setUp();
+        if(player.getyVel() > 1)
+            parallaxEngine.setDown();
+
+        if (Math.abs(player.getxVel()) < 1)
+            parallaxEngine.stopHorizontal();
+        if(Math.abs(player.getyVel()) < 1)
+            parallaxEngine.stopVertical();
+        if(Math.abs(player.getxVel()) > 1 || Math.abs(player.getyVel()) > 1)
+            parallaxEngine.update();
     }
 
     public void placeBlock(int type, Point p) {
@@ -177,13 +213,13 @@ public class GameState extends State {
         } else {
             tile.setActive(1);
         }
-            if (!player.getBounds().intersects(temp) && (this.tile[by][bx].getActive() == 0 || this.tile[by][bx].getType() == 3))
-                this.tile[by][bx] = tile;
-            else
-                return;
+        if (!player.getBounds().intersects(temp) && (this.tile[by][bx].getActive() == 0 || this.tile[by][bx].getType() == 3))
+            this.tile[by][bx] = tile;
+        else
+            return;
         // System.out.println("Placed a block!");
 
-            points.add(mouseLocation);
+        points.add(mouseLocation);
     }
 
     public void breakBlock(Point p) {
@@ -198,16 +234,16 @@ public class GameState extends State {
 
         int type = tile[by][bx].getType();
 
-            if (player.getBounds().intersects(temp) || !(this.tile[by][bx].getActive() != 0))
-                return;
-            if (type == 2 && tile[by - 1][bx].getType() == 3)
-                tile[by - 1][bx].clear();
-            this.tile[by][bx].clear();
-            items.add(new Item(type, true, bx * Tile.getTileSize(), by * Tile.getTileSize()));
-            if (items.size() > maxItems)
-                items.removeFirst();
+        if (player.getBounds().intersects(temp) || !(this.tile[by][bx].getActive() != 0))
+            return;
+        if (type == 2 && tile[by - 1][bx].getType() == 3)
+            tile[by - 1][bx].clear();
+        this.tile[by][bx].clear();
+        items.add(new Item(type, true, bx * Tile.getTileSize(), by * Tile.getTileSize()));
+        if (items.size() > maxItems)
+            items.removeFirst();
 
-            points.add(mouseLocation);
+        points.add(mouseLocation);
 
         // System.out.println("Broke a block!");
     }
